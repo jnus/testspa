@@ -1,6 +1,7 @@
 # Build results
 bin/
 obj/
+release/
 
 # User-specific files
 *.user
