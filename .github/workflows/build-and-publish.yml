@@ -1,0 +1,51 @@
+name: Build and Publish Console App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      
+    - name: Publish Linux x64
+      run: dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -r linux-x64 -o ./publish/linux-x64
+      
+    - name: Publish Windows x64
+      run: dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -r win-x64 -o ./publish/win-x64
+      
+    - name: Copy appsettings.json to publish directories
+      run: |
+        cp appsettings.json ./publish/linux-x64/
+        cp appsettings.json ./publish/win-x64/
+        
+    - name: Upload Linux artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: console-app-linux-x64
+        path: ./publish/linux-x64/
+        
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: console-app-win-x64
+        path: ./publish/win-x64/
